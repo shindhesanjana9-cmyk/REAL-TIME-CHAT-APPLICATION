@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Real-Time Chat App</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #eef2f7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .chat-container {
+        width: 400px;
+        max-width: 95%;
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    .chat-box {
+        height: 350px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 8px;
+        background: #fafafa;
+        margin-bottom: 10px;
+    }
+
+    .message {
+        background: #007bff;
+        color: white;
+        padding: 8px 12px;
+        margin: 6px 0;
+        border-radius: 6px;
+        max-width: 70%;
+    }
+
+    .input-area {
+        display: flex;
+    }
+
+    input {
+        flex: 1;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        margin-left: 10px;
+        padding: 10px 15px;
+        border: none;
+        background: #28a745;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="chat-container">
+    <h2>💬 Chat Application</h2>
+
+    <div class="chat-box" id="chatBox"></div>
+
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Type message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById("chatBox");
+    const input = document.getElementById("messageInput");
+
+    let ws;
+
+    // Try connecting to WebSocket (optional)
+    try {
+        ws = new WebSocket("ws://localhost:5000");
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            displayMessage(data.data);
+        };
+    } catch {
+        console.log("WebSocket not connected — running in local mode");
+    }
+
+    function displayMessage(message) {
+        const div = document.createElement("div");
+        div.className = "message";
+        div.textContent = message;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        // Always show locally
+        displayMessage(msg);
+
+        // Send to server if available
+        if (ws && ws.readyState === 1) {
+            ws.send(msg);
+        }
+
+        input.value = "";
+    }
+
+    input.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") sendMessage();
+    });
+</script>
+
+</body>
+</html>
